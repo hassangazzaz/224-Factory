@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>224 Factory</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="224 Factory">
+<meta name="theme-color" content="#F3EFEF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#150E10" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one-column phone app — summary first, bottom tab bar */
+:root{
+  --bg:#F3EFEF; --surface:#FFFFFF; --line:#E2D8D9; --fg:#24161A; --muted:#6E5E62;
+  --accent:#6E2433; --accent-ink:#FFFFFF; --accent-soft:#F0E1E2; --gold:#B8843F;
+  --good:#1E8A52; --warn:#B7740B; --bad:#C23B2E;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#150E10; --surface:#21171A; --line:#3A2B2F; --fg:#F1E9E6; --muted:#AE9C9E;
+  --accent:#D6A366; --accent-ink:#2A1015; --accent-soft:#3B282A; --gold:#D6A366;
+  --good:#46BE7F; --warn:#E3A33B; --bad:#EE6B5E; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%;padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:14px 120px;display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1;letter-spacing:.01em;margin:0;text-wrap:balance}
+.date{color:var(--muted);font-size:13px;text-align:right}
+.eyebrow{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.09em;font-size:13px;color:var(--muted);margin:0 0 8px}
+#factoryName{color:var(--gold)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.stack{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.banner{background:var(--accent-soft);color:var(--fg);border-radius:8px;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+button{font:inherit;cursor:pointer}
+.link{background:none;border:0;color:var(--accent);font-weight:600;padding:4px 0}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:12px 16px;font-weight:600;font-size:15px;width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.hero{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.ring{width:118px;height:118px}
+.hero-big{font-family:var(--display);font-weight:700;font-size:54px;line-height:.9}
+.hero-sub{color:var(--muted);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.kpi b{display:block;font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums}
+.kpi b.name{font-family:var(--display);font-weight:700;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi span{font-size:12px;color:var(--muted)}
+.kpi.bad b{color:var(--bad)} .kpi.ok b{color:var(--good)} .kpi.warn b{color:var(--warn)}
+
+.stages{display:flex;flex-direction:column;gap:11px}
+.srow{display:grid;grid-template-columns:118px 1fr 76px;gap:10px;align-items:center;font-size:13px}
+.srow .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{height:12px;background:var(--bg);border-radius:3px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--accent)}
+.track i.top{background:var(--warn)}
+.srow .v{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.srow .v small{display:block;font-size:11px}
+.up{color:var(--bad)} .down{color:var(--good)} .flat{color:var(--muted)}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.summary{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+.summary li{padding-left:14px;position:relative}
+.summary li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.summary li.w::before{background:var(--warn)} .summary li.b::before{background:var(--bad)} .summary li.g::before{background:var(--good)}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 0}
+.empty{color:var(--muted);font-size:14px}
+
+.day{border-top:1px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:6px}
+.day:first-child{border-top:0;padding-top:0}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dayhead b{font-family:var(--display);font-size:18px}
+.grid5{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:4px 12px;font-size:13px}
+.grid5 span{color:var(--muted)} .grid5 b{font-family:var(--mono);font-weight:500;margin-left:4px;color:var(--fg)}
+
+form{display:flex;flex-direction:column;gap:16px}
+label{font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two>div,.three>div{min-width:0}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+input,textarea{font:inherit;font-size:16px;width:100%;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:11px 12px}
+input[type=number]{font-family:var(--mono);font-size:20px}
+.fieldset-title{font-family:var(--display);font-weight:600;font-size:17px;margin:0;border-bottom:1px solid var(--line);padding-bottom:6px}
+
+.mat{border-top:1px solid var(--line);padding:14px 0;display:flex;flex-direction:column;gap:8px}
+.mat:first-of-type{border-top:0;padding-top:4px}
+.mat-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.mat-head b{font-family:var(--display);font-size:19px;font-weight:700}
+.mat-figs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mat-figs div{min-width:0}
+.mat-figs strong{display:block;font-family:var(--mono);font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+.mat-figs span{font-size:12px;color:var(--muted)}
+.status{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.status.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.status.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.status.ok{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.sub-form{background:var(--bg);border-radius:8px;padding:12px;gap:12px}
+.mold{display:grid;grid-template-columns:1fr auto;gap:2px 12px;border-top:1px solid var(--line);padding:10px 0}
+.mold:first-of-type{border-top:0}
+.mold .num{font-size:17px;text-align:right}
+.alert{display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:8px;padding:10px 12px;font-size:13.5px;background:color-mix(in srgb,var(--warn) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 35%,transparent)}
+.alert.bad{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border-color:color-mix(in srgb,var(--bad) 35%,transparent)}
+.member{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding:10px 0;font-size:14px}
+.member:first-of-type{border-top:0}
+.member span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+.login{max-width:400px;margin:8vh auto 0;display:flex;flex-direction:column;gap:18px}
+.login img{width:72px;height:72px;border-radius:16px}
+.err{color:var(--bad);font-size:13px;margin:0}
+
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{background:none;border:0;color:var(--muted);padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:600;white-space:nowrap}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+nav button[aria-current="page"]{color:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:6;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:no-preference){.ring circle.arc{transition:stroke-dashoffset .6s ease}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="loginView" hidden>
+  <div class="login">
+    <img src="icons/icon-192.png" alt="">
+    <div><p class="eyebrow">224 Factory</p><h1 id="loginTitle">Sign in</h1></div>
+    <form id="loginForm" class="panel">
+      <div><label for="l_email">Email</label><input id="l_email" type="email" autocomplete="email" required></div>
+      <div><label for="l_pass">Password</label><input id="l_pass" type="password" autocomplete="current-password" minlength="6" required></div>
+      <p class="err" id="loginErr" hidden></p>
+      <button class="btn" id="loginBtn" type="submit">Sign in</button>
+      <button class="link" type="button" id="toggleMode">New here? Create an account</button>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="appView" hidden>
+  <header>
+    <div style="display:flex;gap:12px;align-items:flex-end"><img src="icons/icon-192.png" alt="" style="width:40px;height:40px;border-radius:9px"><div>
+      <p class="eyebrow" id="factoryName">224 Factory</p>
+      <h1 id="pageTitle">Overview</h1>
+    </div></div>
+    <div class="date" id="today"></div>
+  </header>
+  <div id="sampleBanner" class="banner" hidden><span><b>Sample data</b> for preview. Nothing here is saved.</span><button class="link" id="exitSample">Exit</button></div>
+  <main id="view"></main>
+</div>
+
+<nav aria-label="Sections" id="nav" hidden><div class="in">
+  <button data-tab="overview" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Overview</button>
+  <button data-tab="report"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Day report</button>
+  <button data-tab="stock"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Stock</button>
+  <button data-tab="history"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>History</button>
+  <button data-tab="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>Setup</button>
+</div></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL="https://qjsyadpqxhgceaxjxcpf.supabase.co";
+const SUPABASE_KEY="sb_publishable_EvA7N0M80a-ztGCX_A6wYw_W0cf67Yv";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+const PILES=[
+  {k:"oven",col:"oven",label:"In the oven",short:"Oven",wait:false},
+  {k:"waitDrill",col:"wait_drill",label:"Waiting for drilling",short:"Drilling",wait:true},
+  {k:"waitPaint",col:"wait_paint",label:"Waiting for painting",short:"Painting",wait:true},
+  {k:"waitPack",col:"wait_pack",label:"Waiting for packing",short:"Packing",wait:true}];
+const DEFAULTS={name:"224 Factory",dailyTarget:50};
+const SAFETY_DAYS=3;
+const S={tab:"overview",config:{...DEFAULTS},reports:[],materials:[],molds:[],members:[],sample:false,sampleReports:[],sampleMaterials:[],sampleMolds:[],
+  email:null,isOwner:false,isMember:null,loaded:false,reportDay:null,confirmDel:null,editMat:null,editMold:null,signup:false};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dayKey=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
+let TODAY=dayKey(Date.now());
+const fmtDay=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})};
+const n=v=>Math.max(0,parseInt(v,10)||0);
+const fmtQty=v=>(Math.round(v*10)/10).toLocaleString("en-US");
+const inProgress=r=>PILES.reduce((a,p)=>a+n(r[p.k]),0);
+$("#today").textContent=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+
+const fromReport=r=>({day:r.day,finished:r.finished,rejected:r.rejected,oven:r.oven,waitDrill:r.wait_drill,waitPaint:r.wait_paint,waitPack:r.wait_pack,note:r.note||"",by:r.by_email||""});
+const fromMat=m=>({id:m.id,name:m.name,unit:m.unit||"",qty:+m.qty,perRacket:+m.per_racket,leadDays:m.lead_days,countedDay:m.counted_day});
+
+function reports(){return S.sample?S.sampleReports:S.reports}
+function materials(){return S.sample?S.sampleMaterials:S.materials}
+function molds(){return S.sample?S.sampleMolds:S.molds}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
+function bottleneck(r){let b=null;PILES.filter(p=>p.wait).forEach(p=>{const v=n(r[p.k]);if(v>0&&(!b||v>b.v))b={p,v}});return b}
+
+/* ---------- sample data ---------- */
+function makeSample(){
+  const out=[],t=+S.config.dailyTarget||50;let drill=20,paint=12,pack=8;
+  for(let back=13;back>=0;back--){const d=new Date();d.setDate(d.getDate()-back);
+    drill=Math.max(0,drill+Math.round((Math.random()-.35)*10));paint=Math.max(0,paint+Math.round((Math.random()-.5)*8));pack=Math.max(0,pack+Math.round((Math.random()-.5)*6));
+    out.push({day:dayKey(d),finished:Math.round(t*(.7+Math.random()*.4)),oven:Math.round(t*(.3+Math.random()*.2)),waitDrill:drill,waitPaint:paint,waitPack:pack,rejected:Math.round(Math.random()*5),note:"",by:"sample"})}
+  S.sampleReports=out.reverse();
+  const d=new Date();d.setDate(d.getDate()-2);const day=dayKey(d);
+  S.sampleMaterials=[
+    {id:"m1",name:"Carbon fiber fabric",unit:"m²",qty:900,perRacket:0.6,leadDays:21,countedDay:day},
+    {id:"m2",name:"EVA foam cores",unit:"pcs",qty:1000,perRacket:1,leadDays:14,countedDay:day},
+    {id:"m3",name:"Epoxy resin",unit:"kg",qty:120,perRacket:0.25,leadDays:10,countedDay:day},
+    {id:"m4",name:"Fiberglass frame tubes",unit:"pcs",qty:1500,perRacket:1,leadDays:18,countedDay:day},
+    {id:"m5",name:"Grip tape",unit:"rolls",qty:900,perRacket:1,leadDays:7,countedDay:day}];
+  S.sampleMolds=[{id:"o1",name:"Round shape mold",total:6,working:6},{id:"o2",name:"Teardrop shape mold",total:4,working:3},{id:"o3",name:"Diamond shape mold",total:4,working:4}];
+}
+
+/* ---------- stock math ---------- */
+function dailyRate(){const R=reports().slice(0,7);if(R.length)return{v:R.reduce((a,r)=>a+n(r.finished),0)/R.length,src:`average of the last ${R.length} report${R.length>1?"s":""}`};
+  return{v:+S.config.dailyTarget||0,src:"daily target (no reports yet)"}}
+function matCalc(m){
+  const per=+m.perRacket||0,used=per*reports().filter(r=>r.day>(m.countedDay||"")).reduce((a,r)=>a+n(r.finished),0);
+  const est=Math.max(0,(+m.qty||0)-used),rackets=per>0?Math.floor(est/per):null,rate=dailyRate().v;
+  const days=rackets!==null&&rate>0?rackets/rate:null,lead=+m.leadDays||0;
+  let status="ok",label="Stock is fine";
+  if(days!==null){const slack=days-lead-SAFETY_DAYS;const od=new Date();od.setDate(od.getDate()+Math.floor(slack));
+    const ds=od.toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+    if(slack<=0){status="bad";label="Order now"}else if(slack<=7){status="warn";label="Order by "+ds}else label="Order by "+ds}
+  else if(rackets===0){status="bad";label="Out of stock"}
+  return{est,used,rackets,days,status,label};
+}
+function stockAlerts(){return materials().map(m=>({m,c:matCalc(m)})).filter(x=>x.c.status!=="ok").sort((a,b)=>(a.c.days??0)-(b.c.days??0))}
+
+/* ---------- day summary (written from the numbers) ---------- */
+function summary(R){
+  const r=R[0],prev=R[1],tgt=+S.config.dailyTarget||0,fin=n(r.finished),out=[];
+  const avg7=R.slice(0,7).reduce((a,x)=>a+n(x.finished),0)/Math.min(7,R.length);
+  out.push({c:tgt&&fin>=tgt?"g":"",t:`${fin} rackets finished${tgt?(fin>=tgt?`, target of ${tgt} reached`:`, ${tgt-fin} short of the ${tgt} target`):""}.${prev?` ${fin>=n(prev.finished)?"Up":"Down"} ${Math.abs(fin-n(prev.finished))} on ${fmtDay(prev.day)}`:""}${R.length>2?`, 7-day average ${Math.round(avg7)}.`:prev?".":""}`});
+  const bn=bottleneck(r);
+  if(bn){let grow=0;for(let i=0;i<R.length-1&&i<5;i++){if(n(R[i][bn.p.k])>n(R[i+1][bn.p.k]))grow++;else break}
+    const d=prev?bn.v-n(prev[bn.p.k]):null;
+    out.push({c:grow>=2?"b":"w",t:`Biggest pile: ${bn.v} rackets waiting for ${bn.p.short.toLowerCase()}${d===null?"":d>0?`, up ${d} from the day before`:d<0?`, down ${-d} from the day before`:", same as the day before"}.${grow>=2?` It has grown ${grow} days running, so ${bn.p.short.toLowerCase()} isn't keeping up.`:""}`});
+  }else out.push({c:"g",t:"No rackets waiting at any stage. Work is flowing through."});
+  const rej=n(r.rejected);if(rej){const pct=rej/(fin+rej)*100;out.push({c:pct>5?"b":"",t:`${rej} rejected (${pct.toFixed(1)}% of output)${pct>5?", above the 5% mark":""}.`})}
+  const al=stockAlerts();if(al.length)out.push({c:al[0].c.status==="bad"?"b":"w",t:`${al[0].m.name}: ${al[0].c.label.toLowerCase()}.`});
+  let focus;if(bn&&prev&&bn.v>n(prev[bn.p.k]))focus=`Check ${bn.p.short.toLowerCase()} first tomorrow: staffing, machine time, or a broken tool.`;
+  else if(tgt&&fin<tgt)focus=`To hit target, ${tgt-fin} more rackets a day need to reach packing.`;
+  else focus="Keep the same setup tomorrow.";
+  out.push({c:"",t:focus});
+  return out;
+}
+
+/* ---------- charts ---------- */
+function ringSVG(pct){const r=50,c=2*Math.PI*r,o=c*(1-Math.min(pct,1));
+  return `<svg class="ring" viewBox="0 0 118 118" aria-hidden="true"><circle cx="59" cy="59" r="${r}" fill="none" stroke="var(--line)" stroke-width="12"/><circle class="arc" cx="59" cy="59" r="${r}" fill="none" stroke="${pct>=1?"var(--good)":"var(--accent)"}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${o}" transform="rotate(-90 59 59)"/><text x="59" y="65" text-anchor="middle" fill="var(--fg)" style="font:600 18px var(--mono)">${Math.round(pct*100)}%</text></svg>`}
+function weekChart(R,endDay){
+  const days=[];const [y,m,d]=endDay.split("-").map(Number);for(let i=6;i>=0;i--)days.push(dayKey(new Date(y,m-1,d-i)));
+  const map={};R.forEach(r=>map[r.day]=r);
+  const fin=days.map(k=>map[k]?n(map[k].finished):null);
+  const tgt=+S.config.dailyTarget||0,max=Math.max(tgt,...fin.map(v=>v||0),1)*1.15;
+  const W=320,H=150,pl=28,pb=20,pt=12,cw=(W-pl)/7,yy=v=>pt+(H-pt-pb)*(1-v/max);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Finished rackets per day, last 7 days">`;
+  [0,Math.round(max/2)].forEach(v=>{s+=`<line x1="${pl}" x2="${W}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--line)"/><text x="${pl-4}" y="${yy(v)+3}" text-anchor="end">${v}</text>`});
+  fin.forEach((v,i)=>{const x=pl+i*cw+cw*.2,w=cw*.6,last=i===6;
+    if(v!==null)s+=`<rect x="${x}" y="${yy(v)}" width="${w}" height="${Math.max(yy(0)-yy(v),0)}" rx="2" fill="${last?"var(--accent)":"var(--accent-soft)"}"/><text x="${x+w/2}" y="${yy(v)-4}" text-anchor="middle" style="fill:var(--fg)">${v}</text>`;
+    else s+=`<text x="${x+w/2}" y="${yy(0)-4}" text-anchor="middle">–</text>`;
+    s+=`<text x="${x+w/2}" y="${H-5}" text-anchor="middle">${new Date(days[i]+"T12:00").toLocaleDateString("en-GB",{weekday:"narrow"})}</text>`});
+  if(tgt)s+=`<line x1="${pl}" x2="${W}" y1="${yy(tgt)}" y2="${yy(tgt)}" stroke="var(--good)" stroke-dasharray="4 3"/><text x="${W}" y="${yy(tgt)-4}" text-anchor="end" style="fill:var(--good)">target ${tgt}</text>`;
+  return s+"</svg>";
+}
+
+/* ---------- views ---------- */
+function viewOverview(){
+  const R=reports();
+  if(!S.loaded&&!S.sample)return `<div class="panel empty">Loading reports…</div>`;
+  if(!R.length)return `<section class="panel stack">
+    <p class="eyebrow" style="margin:0">Ready for day one</p>
+    <p style="margin:0">No reports yet. At the end of each day, one person fills in the <b>Day report</b>: rackets finished, how many are in the oven, and how many are waiting for drilling, painting and packing. This page then shows finished rackets against your target, where rackets are piling up, and a summary of the day.</p>
+    <div class="two"><button class="btn" data-go="report">Fill in first report</button><button class="btn ghost" data-sample>Preview with sample data</button></div></section>`;
+  const r=R[0],prev=R[1]||null,tgt=+S.config.dailyTarget||0,fin=n(r.finished),bn=bottleneck(r),rej=n(r.rejected),isToday=r.day===TODAY;
+  const mx=Math.max(1,...PILES.map(p=>n(r[p.k]))),rejBad=rej>0&&rej/(fin+rej)>0.05,al=stockAlerts();
+  return `${al.length?`<div class="alert ${al[0].c.status==="bad"?"bad":""}"><span><b>${esc(al[0].m.name)}</b>: ${al[0].c.label.toLowerCase()}${al.length>1?` · ${al.length-1} more to order soon`:""}</span><button class="link" data-go="stock">Stock</button></div>`:""}
+  ${isToday?"":`<div class="banner"><span>Showing the latest report, from <b>${fmtDay(r.day)}</b>. Today's report isn't in yet.</span></div>`}
+  <section class="panel hero">${ringSVG(tgt?fin/tgt:0)}<div><p class="eyebrow">Rackets finished · ${isToday?"today":fmtDay(r.day)}</p><div class="hero-big num">${fin}</div><div class="hero-sub">${tgt?`of ${tgt} target · ${fin>=tgt?"target reached":(tgt-fin)+" short"}`:"Set a daily target in Setup"}${prev?` · ${fin-n(prev.finished)>=0?"+":""}${fin-n(prev.finished)} vs ${fmtDay(prev.day)}`:""}</div></div></section>
+  <section class="kpis">
+    <div class="kpi ${bn?"warn":"ok"}"><b class="name">${bn?esc(bn.p.short):"No hold-ups"}</b><span>${bn?`Bottleneck · ${bn.v} rackets held back`:"Bottleneck stage"}</span></div>
+    <div class="kpi ${rejBad?"bad":"ok"}"><b>${rej}</b><span>Rackets rejected</span></div>
+    <div class="kpi"><b>${inProgress(r)}</b><span>Rackets in progress</span></div>
+  </section>
+  <section class="panel"><p class="eyebrow">Summary of the day</p><ul class="summary">${summary(R).map(x=>`<li class="${x.c}">${esc(x.t)}</li>`).join("")}</ul>
+    ${r.note?`<p class="hint" style="margin-top:10px">Note from the report: ${esc(r.note)}</p>`:""}</section>
+  <section class="panel"><p class="eyebrow">Where rackets are at end of day</p><div class="stages">${PILES.map(p=>{const v=n(r[p.k]),d=prev?v-n(prev[p.k]):null;
+    return `<div class="srow"><span class="lbl">${esc(p.label)}</span><span class="track"><i class="${bn&&bn.p.k===p.k?"top":""}" style="width:${v/mx*100}%"></i></span><span class="v">${v}${d===null?"":`<small class="${d>0?"up":d<0?"down":"flat"}">${d>0?"▲ "+d:d<0?"▼ "+(-d):"no change"}</small>`}</span></div>`}).join("")}</div>
+  <p class="hint" style="margin-top:10px">Amber marks the biggest waiting pile. ${prev?`Arrows compare with ${fmtDay(prev.day)}: a growing pile means that stage isn't keeping up.`:""}</p></section>
+  <section class="panel chart"><p class="eyebrow">Finished per day, last 7 days</p>${weekChart(R,r.day)}</section>`}
+
+function viewReport(){
+  const day=S.reportDay||TODAY,ex=reports().find(r=>r.day===day)||{},val=k=>ex[k]!==undefined?n(ex[k]):"";
+  return `<form class="panel" id="reportForm">
+   <div><label for="rday">Day</label><input id="rday" type="date" value="${day}" max="${TODAY}"></div>
+   ${ex.day?`<p class="hint" style="margin-top:-8px">A report for this day exists. Saving replaces it.</p>`:""}
+   <p class="fieldset-title">Output</p>
+   <div class="two"><div><label for="f_finished">Finished rackets</label><input id="f_finished" type="number" inputmode="numeric" min="0" placeholder="0" value="${val("finished")}"></div>
+   <div><label for="f_rejected">Rejected today</label><input id="f_rejected" type="number" inputmode="numeric" min="0" placeholder="0" value="${val("rejected")}"></div></div>
+   <p class="fieldset-title">Count on the floor at end of day</p>
+   <div class="two">${PILES.map(p=>`<div><label for="f_${p.k}">${esc(p.label)}</label><input id="f_${p.k}" type="number" inputmode="numeric" min="0" placeholder="0" value="${val(p.k)}"></div>`).join("")}</div>
+   <div><label for="f_note">Note (optional)</label><input id="f_note" type="text" maxlength="200" placeholder="e.g. drill 2 down for 3 hours" value="${esc(ex.note||"")}"></div>
+   <button class="btn" id="saveBtn" type="submit" ${S.sample?"disabled":""}>${ex.day?"Update report":"Save report"}</button>
+   ${S.sample?`<p class="hint">Exit sample mode to save real reports.</p>`:""}
+  </form>`}
+
+function matForm(m){m=m||{};const isNew=!m.id;
+  return `<form class="stack sub-form" id="matForm" data-id="${m.id||""}">
+   <div><label for="m_name">Material</label><input id="m_name" required maxlength="60" placeholder="e.g. Carbon fiber fabric" value="${esc(m.name||"")}"></div>
+   <div class="three"><div><label for="m_qty">In stock now</label><input id="m_qty" type="number" inputmode="decimal" min="0" step="any" required value="${m.id?Math.round(matCalc(m).est*10)/10:""}"></div>
+   <div><label for="m_unit">Unit</label><input id="m_unit" maxlength="12" placeholder="kg, m², pcs" value="${esc(m.unit||"")}"></div>
+   <div><label for="m_per">Used per racket</label><input id="m_per" type="number" inputmode="decimal" min="0" step="any" required value="${m.perRacket??""}"></div></div>
+   <div><label for="m_lead">Supplier delivery time (days)</label><input id="m_lead" type="number" inputmode="numeric" min="0" value="${m.leadDays??""}" placeholder="e.g. 21"></div>
+   <div class="two"><button class="btn" type="submit">${isNew?"Add material":"Save"}</button><button class="btn ghost" type="button" data-cancelmat>Cancel</button></div>
+   ${isNew?"":`<button class="link" type="button" data-delmat="${m.id}" style="color:var(--bad);align-self:flex-start">Remove this material</button>`}
+  </form>`}
+function moldForm(o){o=o||{};const isNew=!o.id;
+  return `<form class="stack sub-form" id="moldForm" data-id="${o.id||""}">
+   <div><label for="o_name">Mold</label><input id="o_name" required maxlength="60" placeholder="e.g. Round shape mold" value="${esc(o.name||"")}"></div>
+   <div class="two"><div><label for="o_total">How many</label><input id="o_total" type="number" inputmode="numeric" min="0" required value="${o.total??""}"></div>
+   <div><label for="o_work">Working</label><input id="o_work" type="number" inputmode="numeric" min="0" value="${o.working??""}"></div></div>
+   <div class="two"><button class="btn" type="submit">${isNew?"Add mold":"Save"}</button><button class="btn ghost" type="button" data-cancelmold>Cancel</button></div>
+   ${isNew?"":`<button class="link" type="button" data-delmold="${o.id}" style="color:var(--bad);align-self:flex-start">Remove this mold</button>`}
+  </form>`}
+
+function viewStock(){
+  const M=materials(),O=molds(),rate=dailyRate(),canWrite=!S.sample;
+  if(!S.sample&&!M.length&&!O.length&&S.editMat===null&&S.editMold===null)return `<section class="panel stack">
+    <p class="eyebrow" style="margin:0">Molds and materials</p>
+    <p style="margin:0">Add each material once: how much you have, how much one racket uses, and how long the supplier takes to deliver. The app counts down stock as finished rackets are reported and tells you the date to order by.</p>
+    <div class="two"><button class="btn" data-addmat>Add first material</button><button class="btn ghost" data-sample>Preview with sample data</button></div>
+    <button class="link" data-addmold style="align-self:flex-start">Or add your molds first</button></section>`;
+  const calcs=M.map(m=>({m,c:matCalc(m)})),withR=calcs.filter(x=>x.c.rackets!==null);
+  const limit=withR.length?withR.reduce((a,x)=>x.c.rackets<a.c.rackets?x:a,withR[0]):null;
+  const tW=O.reduce((a,o)=>a+n(o.working),0),tT=O.reduce((a,o)=>a+n(o.total),0);
+  return `${limit?`<section class="panel"><p class="eyebrow">Rackets you can build with current stock</p><div class="hero-big num">${limit.c.rackets.toLocaleString("en-US")}</div>
+    <div class="hero-sub">Limited by <b>${esc(limit.m.name)}</b>${limit.c.days!==null?` · about ${Math.floor(limit.c.days)} days of production`:""}</div></section>`:""}
+  <section class="panel"><div class="mat-head" style="margin-bottom:6px"><p class="eyebrow" style="margin:0">Materials</p>${canWrite&&S.editMat===null?`<button class="link" data-addmat>+ Add material</button>`:""}</div>
+   ${S.editMat==="new"?matForm():""}
+   ${calcs.length?calcs.map(({m,c})=>S.editMat===m.id?`<div class="mat">${matForm(m)}</div>`:`<div class="mat">
+     <div class="mat-head"><b>${esc(m.name)}</b><span class="status ${c.status}">${c.label}</span></div>
+     <div class="mat-figs"><div><strong>${fmtQty(c.est)}</strong><span>${esc(m.unit||"units")} left</span></div><div><strong>${c.rackets===null?"–":c.rackets.toLocaleString("en-US")}</strong><span>rackets' worth</span></div><div><strong>${c.days===null?"–":Math.floor(c.days)}</strong><span>days left</span></div></div>
+     <div class="hint">${fmtQty(+m.perRacket||0)} ${esc(m.unit||"")} per racket · delivery ${n(m.leadDays)} days · counted ${m.countedDay===TODAY?"today":fmtDay(m.countedDay||TODAY)}${c.used?`, ${fmtQty(c.used)} used since`:""}</div>
+     ${canWrite?`<button class="link" style="align-self:flex-start" data-editmat="${m.id}">Update count</button>`:""}</div>`).join(""):(S.editMat==="new"?"":`<p class="empty">No materials yet.</p>`)}
+   <p class="hint" style="margin-top:8px">Days left use ${rate.v?`${fmtQty(rate.v)} rackets a day, the ${rate.src}`:"no production rate yet: set a daily target in Setup"}. Order-by dates keep ${SAFETY_DAYS} spare days on top of delivery time.</p></section>
+  <section class="panel"><div class="mat-head" style="margin-bottom:6px"><p class="eyebrow" style="margin:0">Molds${tT?` · ${tW} of ${tT} working`:""}</p>${canWrite&&S.editMold===null?`<button class="link" data-addmold>+ Add mold</button>`:""}</div>
+   ${S.editMold==="new"?moldForm():""}
+   ${O.length?O.map(o=>S.editMold===o.id?`<div class="mold" style="grid-template-columns:1fr">${moldForm(o)}</div>`:`<div class="mold"><b>${esc(o.name)}</b><span class="num">${n(o.working)}<span style="color:var(--muted);font-size:13px"> / ${n(o.total)}</span></span>
+     <span class="hint" style="margin:0">${n(o.total)-n(o.working)>0?`<span class="up">${n(o.total)-n(o.working)} need repair</span>`:"All working"}</span>${canWrite?`<button class="link" style="justify-self:end;padding:0" data-editmold="${o.id}">Edit</button>`:""}</div>`).join(""):(S.editMold==="new"?"":`<p class="empty">No molds added yet.</p>`)}
+  </section>`}
+
+function viewHistory(){
+  const R=reports();if(!R.length)return `<div class="panel empty">No reports yet. Each day's report appears here.</div>`;
+  return `<section class="panel">${R.map(r=>{const bn=bottleneck(r);
+    const del=!S.sample?(S.confirmDel===r.day?`<span><button class="link" data-del="${r.day}" style="color:var(--bad)">Delete this report</button> · <button class="link" data-cancel>Keep</button></span>`:`<span><button class="link" data-edit="${r.day}">Edit</button> · <button class="link" data-ask="${r.day}">Delete</button></span>`):"";
+    return `<div class="day"><div class="dayhead"><b>${r.day===TODAY?"Today":fmtDay(r.day)}</b><span class="num">${n(r.finished)} finished${n(r.rejected)?` · <span class="up">${n(r.rejected)} rejected</span>`:""}</span></div>
+    <div class="grid5">${PILES.map(p=>`<div><span>${esc(p.short)}</span><b>${n(r[p.k])}</b></div>`).join("")}</div>
+    <div class="hint">${bn?`Bottleneck: ${esc(bn.p.short)}`:"No hold-ups"}${r.by&&r.by!=="sample"?` · by ${esc(r.by)}`:""}${r.note?` · ${esc(r.note)}`:""}</div>${del}</div>`}).join("")}</section>`}
+
+function viewSetup(){
+  const c=S.config,ro=!S.isOwner;
+  return `<form class="panel" id="setupForm">
+   <div><label for="fname">Factory name</label><input id="fname" value="${esc(c.name)}" ${ro?"disabled":""}></div>
+   <div><label for="tgt">Daily target (finished rackets)</label><input id="tgt" type="number" min="0" value="${+c.dailyTarget||0}" ${ro?"disabled":""}></div>
+   ${ro?`<p class="hint">Only the owner can change setup.</p>`:`<button class="btn" type="submit">Save setup</button>`}
+  </form>
+  <section class="panel"><p class="eyebrow">Team</p>
+   ${S.members.map(m=>`<div class="member"><span>${esc(m.email)}${m.role==="owner"?' <span class="hint">· owner</span>':""}</span>${S.isOwner&&m.role!=="owner"?`<button class="link" data-rmmember="${esc(m.email)}" style="color:var(--bad)">Remove</button>`:""}</div>`).join("")}
+   ${S.isOwner?`<form id="memberForm" style="margin-top:12px;gap:10px"><div><label for="newMember">Add someone by email</label><input id="newMember" type="email" placeholder="employee@email.com" required></div><button class="btn ghost" type="submit">Add to team</button>
+   <p class="hint" style="margin:0">Then send them the app link. They tap “Create an account” with this same email.</p></form>`:""}
+  </section>
+  <section class="panel stack"><p class="eyebrow" style="margin:0">Signed in</p><p style="margin:0;font-size:14px">${esc(S.email||"")}</p><button class="btn ghost" id="signOut">Sign out</button></section>`}
+
+function softRender(){const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&a.closest("form"))return;render()}
+function render(){
+  $("#factoryName").textContent=S.config.name||DEFAULTS.name;
+  $("#pageTitle").textContent={overview:"Overview",report:"End-of-day report",stock:"Molds & materials",history:"History",setup:"Setup"}[S.tab];
+  $("#sampleBanner").hidden=!S.sample;
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===S.tab?"page":"false"));
+  if(S.isMember===false){$("#view").innerHTML=`<section class="panel stack"><p class="eyebrow" style="margin:0">Waiting for access</p><p style="margin:0">You're signed in as <b>${esc(S.email)}</b>, but this email isn't on the factory team yet. Ask the owner to add it in Setup, then reopen the app.</p><button class="btn ghost" id="signOut">Sign out</button></section>`;$("#nav").hidden=true;return}
+  $("#nav").hidden=false;
+  $("#view").innerHTML=`<div class="stack">${({overview:viewOverview,report:viewReport,stock:viewStock,history:viewHistory,setup:viewSetup})[S.tab]()}</div>`;
+}
+
+/* ---------- data ---------- */
+async function loadAll(){
+  TODAY=dayKey(Date.now());
+  const [cfg,rep,mat,mol,mem]=await Promise.all([
+    sb.from("config").select("*").eq("id",1).maybeSingle(),
+    sb.from("reports").select("*").order("day",{ascending:false}).limit(120),
+    sb.from("materials").select("*").order("name"),
+    sb.from("molds").select("*").order("name"),
+    sb.from("members").select("*").order("created_at")]);
+  if(cfg.data)S.config={name:cfg.data.name,dailyTarget:cfg.data.daily_target};
+  if(rep.data)S.reports=rep.data.map(fromReport);
+  if(mat.data)S.materials=mat.data.map(fromMat);
+  if(mol.data)S.molds=mol.data;
+  if(mem.data)S.members=mem.data;
+  S.isMember=!!(mem.data&&mem.data.some(m=>m.email.toLowerCase()===String(S.email).toLowerCase()));
+  S.isOwner=!!(mem.data&&mem.data.some(m=>m.email.toLowerCase()===String(S.email).toLowerCase()&&m.role==="owner"));
+  S.loaded=true;softRender();
+}
+function failMsg(error){return error&&/row-level security|permission/i.test(error.message||"")?"You don't have permission to do that.":"Couldn't save. Check your connection and try again."}
+
+/* ---------- events ---------- */
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.tab=b.dataset.tab;S.confirmDel=null;S.editMat=null;S.editMold=null;if(S.tab==="report")S.reportDay=null;render();window.scrollTo(0,0)});
+$("#exitSample").onclick=()=>{S.sample=false;render()};
+function setMode(signup){S.signup=signup;$("#loginTitle").textContent=signup?"Create account":"Sign in";$("#loginBtn").textContent=signup?"Create account":"Sign in";$("#toggleMode").textContent=signup?"Already have an account? Sign in":"New here? Create an account";$("#l_pass").autocomplete=signup?"new-password":"current-password"}
+$("#toggleMode").onclick=()=>{setMode(!S.signup);$("#loginErr").hidden=true};
+$("#loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();const email=$("#l_email").value.trim(),password=$("#l_pass").value,err=$("#loginErr"),btn=$("#loginBtn");err.hidden=true;btn.disabled=true;
+  const res=S.signup?await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await sb.auth.signInWithPassword({email,password});
+  btn.disabled=false;
+  if(res.error){err.textContent=/invalid login/i.test(res.error.message)?"Wrong email or password.":/confirm/i.test(res.error.message)?"Confirm your email first: open the link we sent you, then sign in.":res.error.message;err.hidden=false;return}
+  if(S.signup&&!res.data.session){err.textContent="Check your email and tap the confirmation link, then come back and sign in.";err.hidden=false;setMode(false)}
+});
+document.addEventListener("click",async e=>{
+  const t=e.target;
+  if(t.id==="signOut"){await sb.auth.signOut();return}
+  if(t.closest("[data-go]")){S.tab=t.closest("[data-go]").dataset.go;render();window.scrollTo(0,0);return}
+  if(t.closest("[data-sample]")){makeSample();S.sample=true;render();return}
+  if(t.dataset.edit){S.reportDay=t.dataset.edit;S.tab="report";render();window.scrollTo(0,0);return}
+  if(t.dataset.ask){S.confirmDel=t.dataset.ask;render();return}
+  if(t.hasAttribute("data-cancel")){S.confirmDel=null;render();return}
+  if(t.dataset.del){const {error}=await sb.from("reports").delete().eq("day",t.dataset.del);toast(error?failMsg(error):"Report deleted");S.confirmDel=null;await loadAll();render();return}
+  if(t.closest("[data-addmat]")){S.editMat="new";S.editMold=null;render();return}
+  if(t.dataset.editmat){S.editMat=t.dataset.editmat;S.editMold=null;render();return}
+  if(t.hasAttribute("data-cancelmat")){S.editMat=null;render();return}
+  if(t.closest("[data-addmold]")){S.editMold="new";S.editMat=null;render();return}
+  if(t.dataset.editmold){S.editMold=t.dataset.editmold;S.editMat=null;render();return}
+  if(t.hasAttribute("data-cancelmold")){S.editMold=null;render();return}
+  if(t.dataset.delmat){const {error}=await sb.from("materials").delete().eq("id",t.dataset.delmat);toast(error?failMsg(error):"Material removed");S.editMat=null;await loadAll();render();return}
+  if(t.dataset.delmold){const {error}=await sb.from("molds").delete().eq("id",t.dataset.delmold);toast(error?failMsg(error):"Mold removed");S.editMold=null;await loadAll();render();return}
+  if(t.dataset.rmmember){const {error}=await sb.from("members").delete().eq("email",t.dataset.rmmember);toast(error?failMsg(error):"Removed from team");await loadAll();render();return}
+});
+document.addEventListener("change",e=>{if(e.target.id==="rday"){S.reportDay=e.target.value||TODAY;render()}});
+document.addEventListener("submit",async e=>{
+  const id=e.target.id;if(id==="loginForm")return;e.preventDefault();
+  if(id==="reportForm"&&!S.sample){
+    const day=$("#rday").value||TODAY,btn=$("#saveBtn");btn.disabled=true;
+    const row={day,finished:n($("#f_finished").value),rejected:n($("#f_rejected").value),note:$("#f_note").value.trim().slice(0,200),by_email:S.email,updated_at:new Date().toISOString()};
+    PILES.forEach(p=>row[p.col]=n($("#f_"+p.k).value));
+    const {error}=await sb.from("reports").upsert(row,{onConflict:"day"});
+    if(error){btn.disabled=false;toast(failMsg(error));return}
+    toast(`Report saved for ${day===TODAY?"today":fmtDay(day)}`);S.tab="overview";S.reportDay=null;await loadAll();render();window.scrollTo(0,0);
+  }
+  if(id==="matForm"&&!S.sample){
+    const mid=e.target.dataset.id,num=v=>Math.max(0,parseFloat(v)||0);
+    const row={name:$("#m_name").value.trim(),unit:$("#m_unit").value.trim(),qty:num($("#m_qty").value),per_racket:num($("#m_per").value),lead_days:n($("#m_lead").value),counted_day:TODAY,updated_at:new Date().toISOString()};
+    if(!row.name||!row.per_racket){toast("Enter a name and how much one racket uses");return}
+    const {error}=mid?await sb.from("materials").update(row).eq("id",mid):await sb.from("materials").insert(row);
+    if(error){toast(failMsg(error));return}
+    toast(mid?"Stock updated":"Material added");S.editMat=null;await loadAll();render();
+  }
+  if(id==="moldForm"&&!S.sample){
+    const mid=e.target.dataset.id,total=n($("#o_total").value),wv=$("#o_work").value;
+    const row={name:$("#o_name").value.trim(),total,working:Math.min(total,wv===""?total:n(wv)),updated_at:new Date().toISOString()};
+    if(!row.name){toast("Enter a mold name");return}
+    const {error}=mid?await sb.from("molds").update(row).eq("id",mid):await sb.from("molds").insert(row);
+    if(error){toast(failMsg(error));return}
+    toast(mid?"Mold updated":"Mold added");S.editMold=null;await loadAll();render();
+  }
+  if(id==="setupForm"){
+    const {error}=await sb.from("config").update({name:$("#fname").value.trim()||DEFAULTS.name,daily_target:n($("#tgt").value)}).eq("id",1);
+    toast(error?failMsg(error):"Setup saved");await loadAll();render();
+  }
+  if(id==="memberForm"){
+    const email=$("#newMember").value.trim().toLowerCase();if(!email)return;
+    const {error}=await sb.from("members").insert({email,role:"member"});
+    toast(error?(/duplicate/i.test(error.message)?"Already on the team":failMsg(error)):"Added to team");await loadAll();render();
+  }
+});
+
+/* ---------- start ---------- */
+function showApp(on){$("#loginView").hidden=on;$("#appView").hidden=!on;$("#nav").hidden=!on}
+sb.auth.onAuthStateChange((_ev,session)=>{
+  if(session){S.email=session.user.email;showApp(true);render();loadAll()}
+  else{S.email=null;S.loaded=false;S.isMember=null;showApp(false)}
+});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.email)loadAll()});
+setInterval(()=>{if(!document.hidden&&S.email)loadAll()},60000);
+</script>
+</body>
+</html>
