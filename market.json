@@ -1,0 +1,39 @@
+{
+  "updated": "2026-10-12",
+  "usdToSar": 3.75,
+  "eurToSar": 4.21,
+  "oem": [
+    {"name": "Nanjing Bewe", "country": "China", "material": "18K full carbon", "minUsd": 21.95, "maxUsd": 29.85, "moq": 50},
+    {"name": "Tianchang Zhengmu", "country": "China", "material": "Carbon (basic line)", "minUsd": 20.00, "maxUsd": 22.00, "moq": 200},
+    {"name": "Tianchang Zhengmu", "country": "China", "material": "Carbon (upper line)", "minUsd": 28.00, "maxUsd": 38.00, "moq": 100},
+    {"name": "Anhui Tingcheng", "country": "China", "material": "3K / 12K / 18K carbon", "minUsd": 24.00, "maxUsd": 45.00, "moq": 100},
+    {"name": "Xiamen Hopewinn", "country": "China", "material": "Carbon", "minUsd": 25.00, "maxUsd": 45.00, "moq": 100},
+    {"name": "Xinxu New Materials", "country": "China", "material": "Carbon frame, EVA core", "minUsd": 28.00, "maxUsd": 30.00, "moq": 200},
+    {"name": "SingSong Sports", "country": "China", "material": "12K carbon", "minUsd": 29.40, "maxUsd": 36.90, "moq": 50},
+    {"name": "Guangdong Guosheng", "country": "China", "material": "18K carbon", "minUsd": 47.00, "maxUsd": 47.00, "moq": 300}
+  ],
+  "capacity": [
+    {"name": "Ianoni Sports (Shishi, China)", "perMonthMin": 20000, "perMonthMax": 30000, "detail": "About 130 staff, 6,800 m² factory, exports 90%+ to over 40 countries"}
+  ],
+  "retail": [
+    {"name": "Nox Genius 18K 2027 (pro model)", "price": 371.99, "currency": "USD"},
+    {"name": "Bullpadel Hack 05 Hybrid 2027 (pro model)", "price": 333.99, "currency": "USD"},
+    {"name": "HEAD Evo Speed (beginner, sold in Saudi)", "price": 501, "currency": "SAR"},
+    {"name": "Market average, advanced rackets", "price": 165.62, "currency": "EUR"},
+    {"name": "Market average, all rackets", "price": 131.15, "currency": "EUR"},
+    {"name": "Market average, intermediate rackets", "price": 86.15, "currency": "EUR"},
+    {"name": "Market average, beginner rackets", "price": 60.49, "currency": "EUR"}
+  ],
+  "facts": [
+    "In a study of 180 rackets from 8 brands, about 92% were made in Asia and 8% in Spain.",
+    "Factory prices are listed prices on export marketplaces; real quotes drop with larger orders."
+  ],
+  "sources": [
+    {"title": "Made-in-China: padel racket listings", "url": "https://www.made-in-china.com/products-search/hot-china-products/Padel_Rackets.html"},
+    {"title": "Global Sources: Ianoni company profile", "url": "https://ianoni.manufacturer.globalsources.com/company-profile_6008839880153.htm"},
+    {"title": "Padel Market: best sellers", "url": "https://padelmarket.com/en/collections/rackets-head"},
+    {"title": "desertcart Saudi: HEAD Evo Speed", "url": "https://www.desertcart.com.sa/products/695802305-head-evo-padel-racket.md"},
+    {"title": "padel.fyi: State of the racket", "url": "https://www.padel.fyi/articles/state-of-the-racket/"},
+    {"title": "Pound Sterling Live: EUR/SAR rate", "url": "https://poundsterlinglive.com/data/currencies/eur-pairs/EURSAR-exchange-rate"}
+  ]
+}

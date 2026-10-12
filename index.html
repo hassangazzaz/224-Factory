@@ -122,9 +122,22 @@ input[type=number]{font-family:var(--mono);font-size:20px}
 .login img{width:72px;height:72px;border-radius:16px}
 .err{color:var(--bad);font-size:13px;margin:0}
 
+.rrow{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.rrow:first-of-type{border-top:0}
+.rhead{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.rhead span{min-width:0}
+.rhead .num{white-space:nowrap}
+.rtrack{position:relative;height:12px;background:var(--bg);border-radius:3px}
+.rbar{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--accent-soft);border:1px solid var(--accent);min-width:3px}
+.mk{position:absolute;top:-5px;bottom:-5px;width:3px;margin-left:-1px;border-radius:2px;background:var(--gold)}
+.mk.cost{background:var(--muted)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.src{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.src a{color:var(--accent)}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
-nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
-nav button{background:none;border:0;color:var(--muted);padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:600;white-space:nowrap}
+nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+nav button{background:none;border:0;color:var(--muted);padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;white-space:nowrap}
 nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
 nav button[aria-current="page"]{color:var(--accent)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:6;max-width:calc(100% - 32px)}
@@ -161,8 +174,9 @@ nav button[aria-current="page"]{color:var(--accent)}
 
 <nav aria-label="Sections" id="nav" hidden><div class="in">
   <button data-tab="overview" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Overview</button>
-  <button data-tab="report"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Day report</button>
+  <button data-tab="report"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Report</button>
   <button data-tab="stock"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Stock</button>
+  <button data-tab="market"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 17V9M11 17V5M16 17v-6M21 3l-5 5-4-3-6 5"/></svg>Market</button>
   <button data-tab="history"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>History</button>
   <button data-tab="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>Setup</button>
 </div></nav>
@@ -182,7 +196,7 @@ const PILES=[
 const DEFAULTS={name:"224 Factory",dailyTarget:50};
 const SAFETY_DAYS=3;
 const S={tab:"overview",config:{...DEFAULTS},reports:[],materials:[],molds:[],members:[],sample:false,sampleReports:[],sampleMaterials:[],sampleMolds:[],
-  email:null,isOwner:false,isMember:null,loaded:false,reportDay:null,confirmDel:null,editMat:null,editMold:null,signup:false};
+  email:null,isOwner:false,isMember:null,loaded:false,reportDay:null,confirmDel:null,editMat:null,editMold:null,signup:false,market:null};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const dayKey=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
@@ -358,6 +372,52 @@ function viewStock(){
      <span class="hint" style="margin:0">${n(o.total)-n(o.working)>0?`<span class="up">${n(o.total)-n(o.working)} need repair</span>`:"All working"}</span>${canWrite?`<button class="link" style="justify-self:end;padding:0" data-editmold="${o.id}">Edit</button>`:""}</div>`).join(""):(S.editMold==="new"?"":`<p class="empty">No molds added yet.</p>`)}
   </section>`}
 
+function viewMarket(){
+  const M=S.market,c=S.config;
+  if(!M)return `<div class="panel empty">Loading market data…</div>`;
+  const usd=M.usdToSar,eur=M.eurToSar,toSar=(p,cur)=>cur==="SAR"?p:cur==="EUR"?p*eur:p*usd;
+  const sar=v=>Math.round(v).toLocaleString("en-US")+" SAR";
+  const cost=+c.costSar||0,whole=+c.wholesaleSar||0,retail=+c.retailSar||0,wd=+c.workDays||26;
+  const R=S.sample?S.sampleReports:S.reports,R7=R.slice(0,7);
+  const daily=R7.length?R7.reduce((a,r)=>a+n(r.finished),0)/R7.length:null,monthly=daily!==null?Math.round(daily*wd):null;
+  const oem=M.oem.map(o=>({...o,min:o.minUsd*usd,max:o.maxUsd*usd}));
+  const oMin=Math.min(...oem.map(o=>o.min)),oMax=Math.max(...oem.map(o=>o.max));
+  const scale=Math.max(oMax,whole,cost)*1.1,pct=v=>Math.min(100,v/scale*100);
+  const ins=[];
+  if(whole){const rel=whole<oMin?`below the cheapest Chinese factory (${sar(oMin)})`:whole>oMax?`above the most expensive listed Chinese factory (${sar(oMax)}), so buyers will expect clearly better quality or brand value`:`inside the Chinese factory range (${sar(oMin)} to ${sar(oMax)})`;ins.push({c:whole>oMax?"w":"",t:`Your factory price of ${sar(whole)} is ${rel}.`})}
+  if(cost&&whole){const m=whole-cost;ins.push({c:m<=0?"b":m/whole<0.2?"w":"g",t:`You make ${sar(m)} per racket at factory price, a ${Math.round(m/whole*100)}% margin.`})}
+  if(retail){const avg=131.15*eur,adv=165.62*eur;ins.push({c:"",t:`Your shelf price of ${sar(retail)} is ${retail>adv?"above the average advanced racket ("+sar(adv)+"), so it sits in the premium bracket":retail>avg?"above the market average ("+sar(avg)+")":"at or below the market average ("+sar(avg)+")"}.`})}
+  if(monthly!==null){const cap=M.capacity[0];ins.push({c:"",t:`At your current ${Math.round(daily)} rackets a day you would make about ${monthly.toLocaleString("en-US")} a month (${wd} working days). ${cap.name.split(" (")[0]} states ${cap.perMonthMin.toLocaleString("en-US")} to ${cap.perMonthMax.toLocaleString("en-US")} a month.`})}
+  else ins.push({c:"",t:"Your monthly output appears here once day reports come in."});
+  const canEdit=S.isOwner&&!S.sample&&c.hasMarketCols;
+  return `<section class="panel"><p class="eyebrow">How you compare</p><ul class="summary">${ins.map(x=>`<li class="${x.c}">${esc(x.t)}</li>`).join("")}</ul>
+    ${!whole&&!cost&&!retail?`<p class="hint" style="margin-top:10px">Enter your prices below to see where you stand.</p>`:""}</section>
+  <section class="panel"><p class="eyebrow">Factory price per racket</p>
+    <div class="legend" style="margin-bottom:8px"><span><i style="background:var(--accent-soft);border:1px solid var(--accent)"></i>Listed price range</span>${whole?`<span><i style="background:var(--gold)"></i>Your factory price</span>`:""}${cost?`<span><i style="background:var(--muted)"></i>Your cost</span>`:""}</div>
+    ${oem.map(o=>`<div class="rrow"><div class="rhead"><span><b>${esc(o.name)}</b> <span class="hint">· ${esc(o.material)} · min. order ${o.moq}</span></span><span class="num">${o.min===o.max?sar(o.min):Math.round(o.min)+"–"+sar(o.max)}</span></div>
+      <div class="rtrack"><span class="rbar" style="left:${pct(o.min)}%;width:${Math.max(.6,pct(o.max)-pct(o.min))}%"></span>${cost?`<span class="mk cost" style="left:${pct(cost)}%"></span>`:""}${whole?`<span class="mk" style="left:${pct(whole)}%"></span>`:""}</div></div>`).join("")}
+  </section>
+  <section class="panel"><p class="eyebrow">Shelf prices in shops</p>
+    ${M.retail.map(r=>{const v=toSar(r.price,r.currency);return `<div class="rrow"><div class="rhead"><span>${esc(r.name)}</span><span class="num">${sar(v)}</span></div></div>`}).join("")}
+    ${retail?`<div class="rrow"><div class="rhead"><span><b style="color:var(--gold)">Your shelf price</b></span><span class="num"><b>${sar(retail)}</b></span></div></div>`:""}
+  </section>
+  <section class="panel"><p class="eyebrow">Production size</p>
+    ${M.capacity.map(k=>`<div class="rrow"><div class="rhead"><span><b>${esc(k.name)}</b></span><span class="num">${k.perMonthMin.toLocaleString("en-US")}–${k.perMonthMax.toLocaleString("en-US")} / month</span></div><div class="hint" style="margin:0">${esc(k.detail)}</div></div>`).join("")}
+    <div class="rrow"><div class="rhead"><span><b style="color:var(--gold)">224 Factory</b></span><span class="num">${monthly===null?"no reports yet":monthly.toLocaleString("en-US")+" / month"}</span></div></div>
+  </section>
+  <form class="panel" id="marketForm"><p class="eyebrow" style="margin:0">Your numbers (SAR)</p>
+    ${c.hasMarketCols?"":`<p class="hint" style="margin:0">Saving needs a one-time database update. Ask Claude for the Market setup script.</p>`}
+    <div class="three"><div><label for="mk_cost">Cost per racket</label><input id="mk_cost" type="number" inputmode="decimal" min="0" step="any" value="${c.costSar??""}" ${canEdit?"":"disabled"}></div>
+    <div><label for="mk_whole">Factory price</label><input id="mk_whole" type="number" inputmode="decimal" min="0" step="any" value="${c.wholesaleSar??""}" ${canEdit?"":"disabled"}></div>
+    <div><label for="mk_retail">Shelf price</label><input id="mk_retail" type="number" inputmode="decimal" min="0" step="any" value="${c.retailSar??""}" ${canEdit?"":"disabled"}></div></div>
+    <div><label for="mk_days">Working days a month</label><input id="mk_days" type="number" inputmode="numeric" min="1" max="31" value="${wd}" ${canEdit?"":"disabled"}></div>
+    ${canEdit?`<button class="btn" type="submit">Save my numbers</button>`:S.isOwner?"":`<p class="hint" style="margin:0">Only the owner can change these.</p>`}
+  </form>
+  <section class="panel src"><p class="eyebrow" style="margin:0">Where these numbers come from</p>
+    <span>Public listings, collected ${fmtDay(M.updated)}. Prices converted at 1 USD = ${usd} SAR and 1 EUR = ${eur} SAR. ${M.facts.map(esc).join(" ")}</span>
+    ${M.sources.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join("")}
+  </section>`}
+
 function viewHistory(){
   const R=reports();if(!R.length)return `<div class="panel empty">No reports yet. Each day's report appears here.</div>`;
   return `<section class="panel">${R.map(r=>{const bn=bottleneck(r);
@@ -383,12 +443,12 @@ function viewSetup(){
 function softRender(){const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&a.closest("form"))return;render()}
 function render(){
   $("#factoryName").textContent=S.config.name||DEFAULTS.name;
-  $("#pageTitle").textContent={overview:"Overview",report:"End-of-day report",stock:"Molds & materials",history:"History",setup:"Setup"}[S.tab];
+  $("#pageTitle").textContent={overview:"Overview",report:"End-of-day report",stock:"Molds & materials",market:"Market",history:"History",setup:"Setup"}[S.tab];
   $("#sampleBanner").hidden=!S.sample;
   document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===S.tab?"page":"false"));
   if(S.isMember===false){$("#view").innerHTML=`<section class="panel stack"><p class="eyebrow" style="margin:0">Waiting for access</p><p style="margin:0">You're signed in as <b>${esc(S.email)}</b>, but this email isn't on the factory team yet. Ask the owner to add it in Setup, then reopen the app.</p><button class="btn ghost" id="signOut">Sign out</button></section>`;$("#nav").hidden=true;return}
   $("#nav").hidden=false;
-  $("#view").innerHTML=`<div class="stack">${({overview:viewOverview,report:viewReport,stock:viewStock,history:viewHistory,setup:viewSetup})[S.tab]()}</div>`;
+  $("#view").innerHTML=`<div class="stack">${({overview:viewOverview,report:viewReport,stock:viewStock,market:viewMarket,history:viewHistory,setup:viewSetup})[S.tab]()}</div>`;
 }
 
 /* ---------- data ---------- */
@@ -400,7 +460,8 @@ async function loadAll(){
     sb.from("materials").select("*").order("name"),
     sb.from("molds").select("*").order("name"),
     sb.from("members").select("*").order("created_at")]);
-  if(cfg.data)S.config={name:cfg.data.name,dailyTarget:cfg.data.daily_target};
+  if(cfg.data)S.config={name:cfg.data.name,dailyTarget:cfg.data.daily_target,costSar:cfg.data.cost_sar,wholesaleSar:cfg.data.wholesale_sar,retailSar:cfg.data.retail_sar,workDays:cfg.data.work_days,hasMarketCols:"cost_sar" in cfg.data};
+  if(!S.market)fetch("market.json?v="+Date.now()).then(r=>r.json()).then(j=>{S.market=j;softRender()}).catch(()=>{});
   if(rep.data)S.reports=rep.data.map(fromReport);
   if(mat.data)S.materials=mat.data.map(fromMat);
   if(mol.data)S.molds=mol.data;
@@ -468,6 +529,11 @@ document.addEventListener("submit",async e=>{
     const {error}=mid?await sb.from("molds").update(row).eq("id",mid):await sb.from("molds").insert(row);
     if(error){toast(failMsg(error));return}
     toast(mid?"Mold updated":"Mold added");S.editMold=null;await loadAll();render();
+  }
+  if(id==="marketForm"){
+    const num=v=>v===""?null:Math.max(0,parseFloat(v)||0);
+    const {error}=await sb.from("config").update({cost_sar:num($("#mk_cost").value),wholesale_sar:num($("#mk_whole").value),retail_sar:num($("#mk_retail").value),work_days:Math.min(31,Math.max(1,n($("#mk_days").value)||26))}).eq("id",1);
+    toast(error?failMsg(error):"Numbers saved");await loadAll();render();return;
   }
   if(id==="setupForm"){
     const {error}=await sb.from("config").update({name:$("#fname").value.trim()||DEFAULTS.name,daily_target:n($("#tgt").value)}).eq("id",1);
